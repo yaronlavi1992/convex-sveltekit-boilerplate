@@ -1,0 +1,105 @@
+import { PUBLIC_CONVEX_URL, PUBLIC_CONVEX_SITE_URL } from "$env/static/public";
+
+interface ValidationResult {
+  valid: boolean;
+  errors: string[];
+  warnings: string[];
+}
+
+export function validateEnvironment(): ValidationResult {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  // Required variables
+  if (
+    !PUBLIC_CONVEX_URL ||
+    PUBLIC_CONVEX_URL === "https://your-deployment.convex.cloud"
+  ) {
+    errors.push(
+      "PUBLIC_CONVEX_URL is not configured.\n" +
+        "  Run: pnpm convex dev\n" +
+        "  This will automatically set up your Convex deployment and update .env.local",
+    );
+  }
+
+  if (
+    !PUBLIC_CONVEX_SITE_URL ||
+    PUBLIC_CONVEX_SITE_URL === "https://your-deployment.convex.site"
+  ) {
+    errors.push(
+      "PUBLIC_CONVEX_SITE_URL is not configured.\n" +
+        "  This should be auto-filled by: pnpm convex dev\n" +
+        "  It should end with .convex.site",
+    );
+  }
+
+  // Validate URL formats
+  if (PUBLIC_CONVEX_URL && !isValidUrl(PUBLIC_CONVEX_URL)) {
+    errors.push(`PUBLIC_CONVEX_URL is not a valid URL: ${PUBLIC_CONVEX_URL}`);
+  }
+
+  if (PUBLIC_CONVEX_SITE_URL && !isValidUrl(PUBLIC_CONVEX_SITE_URL)) {
+    errors.push(
+      `PUBLIC_CONVEX_SITE_URL is not a valid URL: ${PUBLIC_CONVEX_SITE_URL}`,
+    );
+  }
+
+  // Important setup instructions
+  warnings.push(
+    "Make sure to set Convex environment variables:\n" +
+      "  1. pnpm convex env set SITE_URL http://localhost:5173\n" +
+      "  2. pnpm convex env set BETTER_AUTH_SECRET $(openssl rand -base64 32)\n" +
+      "  (Run these commands in your terminal)",
+  );
+
+  return {
+    valid: errors.length === 0,
+    errors,
+    warnings,
+  };
+}
+
+function isValidUrl(url: string): boolean {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function formatValidationMessage(result: ValidationResult): string {
+  const lines: string[] = [];
+
+  if (!result.valid) {
+    lines.push("❌ ENVIRONMENT CONFIGURATION ERRORS");
+    lines.push("");
+    lines.push(
+      "Your environment is not configured correctly. Please fix the following:",
+    );
+    lines.push("");
+
+    result.errors.forEach((error, index) => {
+      lines.push(`${index + 1}. ${error}`);
+      lines.push("");
+    });
+
+    lines.push("📖 Setup Guide:");
+    lines.push("  1. Copy .env.example to .env.local");
+    lines.push("  2. Run: pnpm convex dev");
+    lines.push("  3. Set Convex env vars (see warnings below)");
+    lines.push("  4. Restart both servers");
+    lines.push("");
+  }
+
+  if (result.warnings.length > 0) {
+    lines.push("⚠️  IMPORTANT SETUP STEPS:");
+    lines.push("");
+    result.warnings.forEach((warning) => {
+      lines.push(`${warning}`);
+    });
+    lines.push("");
+  }
+
+  return lines.join("\n");
+}
