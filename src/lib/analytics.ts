@@ -8,23 +8,26 @@ import {
 let isInitialized = false;
 
 export const initPostHog = () => {
-  if (!browser) return;
+  if (!browser || isInitialized) return;
   
   if (!PUBLIC_POSTHOG_API_KEY) {
-    console.warn('⚠️  PostHog analytics disabled (PUBLIC_POSTHOG_API_KEY not set)');
     return;
   }
 
-  try {
-    posthog.init(PUBLIC_POSTHOG_API_KEY, {
-      api_host: PUBLIC_POSTHOG_HOST || "https://app.posthog.com",
-      capture_pageview: true,
-      capture_pageleave: true,
-    });
-    isInitialized = true;
-  } catch (error) {
-    console.error('Failed to initialize PostHog:', error);
-  }
+  queueMicrotask(() => {
+    try {
+      posthog.init(PUBLIC_POSTHOG_API_KEY, {
+        api_host: PUBLIC_POSTHOG_HOST || "https://app.posthog.com",
+        capture_pageview: true,
+        capture_pageleave: true,
+        loaded: (posthog) => {
+          isInitialized = true;
+        }
+      });
+    } catch (error) {
+      console.error('Failed to initialize PostHog:', error);
+    }
+  });
 };
 
 export const trackEvent = (eventName: string, properties?: Record<string, any>) => {

@@ -62,13 +62,16 @@ export async function load({ request }: RequestEvent) {
     }
 
     let customerState = null;
+    const cookie = request.headers.get('cookie');
+    
     try {
-        const cookie = request.headers.get('cookie');
-        const customerStateResponse = await fetch(`${PUBLIC_CONVEX_SITE_URL}/api/auth/customer/state`, {
-            headers: {
-                cookie: cookie || '',
-            },
-        });
+        const [customerStateResponse] = await Promise.all([
+            fetch(`${PUBLIC_CONVEX_SITE_URL}/api/auth/customer/state`, {
+                headers: {
+                    cookie: cookie || '',
+                },
+            })
+        ]);
 
         if (customerStateResponse.ok) {
             customerState = await customerStateResponse.json();

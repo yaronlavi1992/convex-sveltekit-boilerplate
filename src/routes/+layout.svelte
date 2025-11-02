@@ -4,12 +4,13 @@
 	import { ModeWatcher } from 'mode-watcher';
 	import { initPostHog } from '$lib/analytics';
 	import { browser } from '$app/environment';
+	import { onMount } from 'svelte';
 	
 	let { children } = $props();
 
-	if (browser) {
+	onMount(() => {
 		initPostHog();
-	}
+	});
 </script>
 
 <svelte:head>

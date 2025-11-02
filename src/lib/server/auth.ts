@@ -5,7 +5,6 @@ import { api } from '$convex/_generated/api';
 
 export async function protectRoute(event: RequestEvent) {
 	if (!event.locals.token) {
-		console.log('[protectRoute] No token found in locals');
 		throw redirect(302, '/login');
 	}
 
@@ -14,17 +13,14 @@ export async function protectRoute(event: RequestEvent) {
 		const user = await client.query(api.auth.getCurrentUser, {});
 
 		if (!user) {
-			console.error('[protectRoute] No user found');
 			throw redirect(302, '/login');
 		}
 
-		console.log('[protectRoute] User authenticated:', user.email);
 		return { user };
 	} catch (error: any) {
 		if (error?.status >= 300 && error?.status < 400) {
 			throw error;
 		}
-		console.error('[protectRoute] Failed to fetch user:', error);
 		throw redirect(302, '/login');
 	}
 }

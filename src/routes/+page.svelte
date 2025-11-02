@@ -1,19 +1,15 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { useSession } from '$lib/auth-client';
+	import { getSession } from '$lib/session-store.svelte';
 	import { PUBLIC_CONVEX_URL } from '$env/static/public';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	
 	const convexConfigured = PUBLIC_CONVEX_URL && PUBLIC_CONVEX_URL.trim() !== '';
 	
-	let session: ReturnType<typeof useSession> | null = null;
+	const session = getSession();
 	let user = $state<any>(null);
 	let isLoading = $state(true);
-	
-	if (browser) {
-		session = useSession();
-	}
 	
 	$effect(() => {
 		if (browser && session) {
@@ -37,16 +33,16 @@
 	
 	// Fallback timeout in case session is stuck loading
 	onMount(() => {
-		if (convexConfigured) {
-			const timeout = setTimeout(() => {
-				if (!hasRedirected) {
-					hasRedirected = true;
-					goto('/login');
-				}
-			}, 2000);
-			
-			return () => clearTimeout(timeout);
-		}
+		if (!convexConfigured) return;
+		
+		const timeout = setTimeout(() => {
+			if (!hasRedirected) {
+				hasRedirected = true;
+				goto('/login');
+			}
+		}, 2000);
+		
+		return () => clearTimeout(timeout);
 	});
 </script>
 

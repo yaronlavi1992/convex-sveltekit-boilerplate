@@ -2,7 +2,8 @@
 	import { Card } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
-	import { authClient, useSession } from '$lib/auth-client';
+	import { authClient } from '$lib/auth-client';
+	import { getSession } from '$lib/session-store.svelte';
 	import CheckIcon from "@lucide/svelte/icons/check";
 	import CreditCardIcon from "@lucide/svelte/icons/credit-card";
 	import AlertCircleIcon from "@lucide/svelte/icons/alert-circle";
@@ -10,17 +11,12 @@
 	import RefreshCwIcon from "@lucide/svelte/icons/refresh-cw";
 	import { cn } from '$lib/utils';
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
 
     let { data }: { data: { polarConfigured: boolean; plans?: Array<{ name: string; price: number; interval: string; productId: string; features: string[]; current?: boolean; isFree?: boolean }>; customerState?: any } } = $props();
 
-	let session: ReturnType<typeof useSession> | null = null;
+	const session = getSession();
 	let user = $state<any>(null);
-	
-	if (browser) {
-		session = useSession();
-	}
 	
 	$effect(() => {
 		if (browser && session) {
@@ -102,26 +98,30 @@
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('success') === 'true') {
             showSuccessMessage = true;
-            window.history.replaceState({}, '', '/dashboard/settings/billing');
+            const url = new URL(window.location.href);
+            url.searchParams.delete('success');
+            window.history.replaceState({}, '', url.pathname);
             
-            // Poll for updated subscription state after successful checkout
-            // Webhooks might take a few seconds to process
             let pollCount = 0;
-            const maxPolls = 10; // Poll for up to 10 seconds
+            const maxPolls = 10;
             
             const pollInterval = setInterval(async () => {
                 pollCount++;
                 await refreshCustomerState();
                 
-                // Stop polling if subscription is active or max polls reached
                 if (hasActiveSubscription || pollCount >= maxPolls) {
                     clearInterval(pollInterval);
                 }
             }, 1000);
             
-            setTimeout(() => {
+            const hideTimeout = setTimeout(() => {
                 showSuccessMessage = false;
             }, 5000);
+
+            return () => {
+                clearInterval(pollInterval);
+                clearTimeout(hideTimeout);
+            };
         }
     });
 
