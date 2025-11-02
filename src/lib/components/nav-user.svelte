@@ -12,8 +12,20 @@
 	import LogOutIcon from "@lucide/svelte/icons/log-out";
 	import SparklesIcon from "@lucide/svelte/icons/sparkles";
 
-	let { user }: { user: { name: string; email: string; avatar: string } } = $props();
+	type User = {
+		name?: string | null;
+		email?: string | null;
+		image?: string | null;
+	};
+
+	let { user }: { user: User } = $props();
 	const sidebar = useSidebar();
+	
+	const displayName = $derived(user?.name ?? user?.email?.split('@')[0] ?? 'User');
+	const displayEmail = $derived(user?.email ?? 'No email');
+	const initials = $derived(
+		(user?.name?.charAt(0) ?? user?.email?.charAt(0) ?? 'U').toUpperCase()
+	);
 
 	function handleUpgradeToPro() {
 		goto('/dashboard/settings/billing');
@@ -48,12 +60,11 @@
 						{...props}
 					>
 						<Avatar.Root class="size-8 rounded-lg">
-							<Avatar.Image src={user.avatar} alt={user.name} />
-							<Avatar.Fallback class="rounded-lg">CN</Avatar.Fallback>
+							<Avatar.Fallback class="rounded-lg">{initials}</Avatar.Fallback>
 						</Avatar.Root>
 						<div class="grid flex-1 text-left text-sm leading-tight">
-							<span class="truncate font-medium">{user.name}</span>
-							<span class="truncate text-xs">{user.email}</span>
+							<span class="truncate font-medium">{displayName}</span>
+							<span class="truncate text-xs">{displayEmail}</span>
 						</div>
 						<ChevronsUpDownIcon class="ml-auto size-4" />
 					</Sidebar.MenuButton>
@@ -68,12 +79,11 @@
 				<DropdownMenu.Label class="p-0 font-normal">
 					<div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
 						<Avatar.Root class="size-8 rounded-lg">
-							<Avatar.Image src={user.avatar} alt={user.name} />
-							<Avatar.Fallback class="rounded-lg">CN</Avatar.Fallback>
+							<Avatar.Fallback class="rounded-lg">{initials}</Avatar.Fallback>
 						</Avatar.Root>
 						<div class="grid flex-1 text-left text-sm leading-tight">
-							<span class="truncate font-medium">{user.name}</span>
-							<span class="truncate text-xs">{user.email}</span>
+							<span class="truncate font-medium">{displayName}</span>
+							<span class="truncate text-xs">{displayEmail}</span>
 						</div>
 					</div>
 				</DropdownMenu.Label>

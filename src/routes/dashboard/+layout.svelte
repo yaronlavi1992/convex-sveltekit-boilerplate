@@ -4,15 +4,18 @@
 	import * as Breadcrumb from "$lib/components/ui/breadcrumb/index.js";
 	import { Separator } from "$lib/components/ui/separator/index.js";
 	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
-	import type { LayoutData } from './$types';
 	
-	let { children, data }: { children: any; data: LayoutData } = $props();
+	type User = {
+		name?: string | null;
+		email?: string | null;
+		image?: string | null;
+	};
 
-	const user = $derived(data.user);
+	let { children, data }: { children: any; data: { user: User } } = $props();
 </script>
 
 <Sidebar.Provider>
-	<AppSidebar {user} />
+	<AppSidebar user={data.user} />
 	<Sidebar.Inset>
 		<header
 			class="group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear"

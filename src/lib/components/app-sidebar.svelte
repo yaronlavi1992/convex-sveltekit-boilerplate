@@ -68,15 +68,18 @@
 	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
 	import type { ComponentProps } from "svelte";
 
+	type User = {
+		name?: string | null;
+		email?: string | null;
+		image?: string | null;
+	};
+
 	let {
 		ref = $bindable(null),
 		collapsible = "icon",
 		user,
 		...restProps
-	}: ComponentProps<typeof Sidebar.Root> & { user?: { name: string; email: string } | null } = $props();
-
-	const userName = $derived(user?.name || 'User');
-	const userEmail = $derived(user?.email || 'user@example.com');
+	}: ComponentProps<typeof Sidebar.Root> & { user?: User | null } = $props();
 </script>
 
 <Sidebar.Root {collapsible} {...restProps}>
@@ -87,7 +90,9 @@
 		<NavMain items={data.navMain} />
 	</Sidebar.Content>
 	<Sidebar.Footer>
-		<NavUser user={{ name: userName, email: userEmail, avatar: '' }} />
+		{#if user}
+			<NavUser {user} />
+		{/if}
 	</Sidebar.Footer>
 	<Sidebar.Rail />
 </Sidebar.Root>
